@@ -1,6 +1,6 @@
 {
     "name": "wind-framework/crontab",
-    "description": "Wind framework base core.",
+    "description": "Wind framework cron-tab component.",
     "type": "library",
     "version": "0.1.0",
     "require": {
