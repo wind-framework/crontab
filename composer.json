@@ -4,7 +4,7 @@
     "type": "library",
     "version": "0.1.0",
     "require": {
-        "wind-framework/wind-framework": "~0.1.0",
+        "wind-framework/wind-framework": "~0.1",
         "dragonmantank/cron-expression": "^3.1"
     },
     "license": "Apache-2.0",
