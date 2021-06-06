@@ -29,7 +29,7 @@ class CrontabEvent extends \Wind\Event\Event
             case self::TYPE_EXECUTE: return "{$this->name} begin execute.";
             case self::TYPE_RESULT:
                 if ($this->result instanceof \Throwable) {
-                    return "{$this->name} error with: ".fmtException($this->result, config('max_stack_trace', 5));
+                    return "{$this->name} error with: ".fmtException($this->result, config('max_stack_trace'));
                 } else {
                     return "{$this->name} execute successfully.";
                 }
