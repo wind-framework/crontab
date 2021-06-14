@@ -8,15 +8,14 @@
 namespace Wind\Crontab;
 
 use Cron\FieldFactory;
-use Wind\Base\Channel;
 use Wind\Base\Config;
 use Wind\Process\Process;
-
-use function Amp\call;
-use function Amp\delay;
+use Wind\Process\Statable;
 
 class CrontabDispatcherProcess extends Process
 {
+
+    use Statable;
 
     public $name = 'CronDispatcher';
 
@@ -42,42 +41,25 @@ class CrontabDispatcherProcess extends Process
 
             $this->crons[$k] = $cronTask;
         }
-
-        yield call([$this, 'statReporter']);
     }
 
-    public function statReporter()
-    {
-        //消费进程状态上报
-        $channel = di()->get(Channel::class);
+    public function getState() {
+        $stat = [];
 
-        $channel->on('wind.stat.tick', function() use ($channel) {
-            $stat = [];
+        foreach ($this->crons as $cron) {
+            $stat[$cron->getKey()] = [
+                'rule' => $cron->getRule(),
+                'run_count' => $cron->getRunCount(),
+                'last_run_at' => $cron->getLastRunAt(),
+                'next_run_at' => $cron->getNextRunAt(),
+                'desc' => $cron->getDesc()
+            ];
+        }
 
-            foreach ($this->crons as $cron) {
-                $stat[$cron->getKey()] = [
-                    'rule' => $cron->getRule(),
-                    'run_count' => $cron->getRunCount(),
-                    'last_run_at' => $cron->getLastRunAt(),
-                    'next_run_at' => $cron->getNextRunAt(),
-                    'desc' => $cron->getDesc()
-                ];
-            }
-
-            $channel->publish('wind.stat.report', [
-                'type' => 'crontab',
-                'pid' => posix_getpid(),
-                'stat' => $stat
-            ]);
-        });
-
-        yield delay(500);
-
-        $channel->publish('wind.stat.online', [
-            'pid' => posix_getpid(),
+        return [
             'type' => 'crontab',
-            'name' => $this->name
-        ]);
+            'stat' => $stat
+        ];
     }
 
 }
