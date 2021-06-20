@@ -4,6 +4,7 @@ namespace Wind\Crontab;
 
 use Cron\CronExpression;
 use Cron\FieldFactory;
+use DateTime;
 use Wind\Event\EventDispatcher;
 use Wind\Task\Task;
 use Workerman\Timer;
@@ -94,11 +95,11 @@ class CronTask
     public function schedule($run=false)
     {
         //计算和安排下一次运行的时间
-        $now = time();
-        $next = $this->cronExpression->getNextRunDate()->getTimestamp();
-        $this->nextRunAt = $next;
+        $now = new DateTime();
+        $nextTimestamp = $this->cronExpression->getNextRunDate($now)->getTimestamp();
+        $this->nextRunAt = $nextTimestamp;
 
-        $interval = $next - $now;
+        $interval = $nextTimestamp - $now->getTimestamp();
         Timer::add($interval, [$this, 'schedule'], [true], false);
 
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_SCHED, $interval));
