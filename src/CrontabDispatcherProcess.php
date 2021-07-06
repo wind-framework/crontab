@@ -10,12 +10,12 @@ namespace Wind\Crontab;
 use Cron\FieldFactory;
 use Wind\Base\Config;
 use Wind\Process\Process;
-use Wind\Process\Statable;
+use Wind\Process\Stateful;
 
 class CrontabDispatcherProcess extends Process
 {
 
-    use Statable;
+    use Stateful;
 
     public $name = 'CronDispatcher';
 
