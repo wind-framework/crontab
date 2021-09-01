@@ -6,8 +6,9 @@ use Cron\CronExpression;
 use Cron\FieldFactory;
 use DateTime;
 use Wind\Event\EventDispatcher;
-use Wind\Task\Task;
 use Workerman\Timer;
+
+use function Amp\async;
 
 /**
  * CronTask
@@ -119,7 +120,7 @@ class CronTask
 
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_EXECUTE));
 
-        Task::execute($this->callback)->onResolve(function($e, $result) {
+        async('Wind\Task\Task::execute', $this->callback)->onResolve(function($e, $result) {
             /* @var \Exception $e */
             $event = new CrontabEvent($this->key, CrontabEvent::TYPE_RESULT, 0, $e ?: $result);
             $this->eventDispatcher->dispatch($event);

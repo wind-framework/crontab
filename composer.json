@@ -2,9 +2,9 @@
     "name": "wind-framework/crontab",
     "description": "Wind framework cron-tab component.",
     "type": "library",
-    "version": "0.1.1",
+    "version": "1.0.0-dev",
     "require": {
-        "wind-framework/wind-framework": "^0.2.1",
+        "wind-framework/wind-framework": "1.0.0-dev",
         "dragonmantank/cron-expression": "^3.1"
     },
     "license": "Apache-2.0",
