@@ -6,9 +6,10 @@ use Cron\CronExpression;
 use Cron\FieldFactory;
 use DateTime;
 use Wind\Event\EventDispatcher;
+use Wind\Task\Task;
 use Workerman\Timer;
 
-use function Amp\async;
+use function Amp\asyncCallable;
 
 /**
  * CronTask
@@ -101,7 +102,7 @@ class CronTask
         $this->nextRunAt = $nextTimestamp;
 
         $interval = $nextTimestamp - $now->getTimestamp();
-        Timer::add($interval, [$this, 'schedule'], [true], false);
+        Timer::add($interval, asyncCallable([$this, 'schedule']), [true], false);
 
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_SCHED, $interval));
 
@@ -114,17 +115,20 @@ class CronTask
     public function run()
     {
         $now = time();
-
         $this->lastRunAt = $now;
         $this->runCount++;
 
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_EXECUTE));
 
-        async('Wind\Task\Task::execute', $this->callback)->onResolve(function($e, $result) {
-            /* @var \Exception $e */
-            $event = new CrontabEvent($this->key, CrontabEvent::TYPE_RESULT, 0, $e ?: $result);
-            $this->eventDispatcher->dispatch($event);
-        });
+        $e = $result = null;
+        try {
+            $result = Task::execute($this->callback);
+        } catch (\Throwable $ex) {
+            $e = $ex;
+        }
+
+        $event = new CrontabEvent($this->key, CrontabEvent::TYPE_RESULT, 0, $e ?: $result);
+        $this->eventDispatcher->dispatch($event);
     }
 
 }
