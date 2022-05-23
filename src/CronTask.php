@@ -9,8 +9,6 @@ use Wind\Event\EventDispatcher;
 use Wind\Task\Task;
 use Workerman\Timer;
 
-use function Amp\asyncCallable;
-
 /**
  * CronTask
  *
