@@ -3,7 +3,7 @@
     "description": "Wind framework cron-tab component.",
     "type": "library",
     "require": {
-        "wind-framework/wind-framework": "^0.2",
+        "wind-framework/wind-framework": "~0.2",
         "dragonmantank/cron-expression": "^3.1"
     },
     "license": "Apache-2.0",
