@@ -120,7 +120,7 @@ class CronTask
 
         $e = $result = null;
         try {
-            $result = Task::execute($this->callback);
+            $result = Task::await($this->callback);
         } catch (\Throwable $ex) {
             $e = $ex;
         }
