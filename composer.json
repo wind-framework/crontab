@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "wind-framework/wind-framework": "^1.0",
-        "dragonmantank/cron-expression": "^3.1"
+        "dragonmantank/cron-expression": "^3.1",
+        "amphp/process": "^2"
     },
     "license": "Apache-2.0",
     "authors": [

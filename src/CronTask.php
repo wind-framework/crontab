@@ -2,6 +2,7 @@
 
 namespace Wind\Crontab;
 
+use Amp\Process\Process;
 use Cron\CronExpression;
 use Cron\FieldFactory;
 use DateTime;
@@ -21,9 +22,7 @@ use Workerman\Timer;
 class CronTask
 {
 
-    protected $key;
     protected $callback;
-    protected $desc;
 
     /**
      * Undocumented variable
@@ -55,12 +54,23 @@ class CronTask
 
     private $eventDispatcher;
 
-    public function __construct($key, $rule, $execute, $desc, FieldFactory $fieldFactory, EventDispatcher $eventDispatcher)
+    /**
+     * Undocumented function
+     *
+     * @param string $rule
+     * @param callable $execute
+     */
+    public function __construct(
+        protected string $key,
+        $rule,
+        $execute,
+        protected ?string $command,
+        protected string $desc,
+        FieldFactory $fieldFactory,
+        EventDispatcher $eventDispatcher
+    )
     {
-        $this->key = $key;
         $this->callback = $execute;
-        $this->desc = $desc;
-
         $this->cronExpression = new CronExpression($rule, $fieldFactory);
         $this->eventDispatcher = $eventDispatcher;
     }
@@ -119,8 +129,20 @@ class CronTask
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_EXECUTE));
 
         $e = $result = null;
+
         try {
-            $result = Task::await($this->callback);
+            if ($this->callback) {
+                $result = Task::await($this->callback);
+            } else {
+                $command = BASE_DIR.'/wind '.$this->command.' 2>&1';
+                //2>&1 代表将标准错误重定向到输出
+                $process = Process::start($command);
+                // $output = buffer($process->getStdout());
+                $code = $process->join();
+                if ($code != 0) {
+                    throw new \Exception("Process '{$this->command}' exit with code $code");
+                }
+            }
         } catch (\Throwable $ex) {
             $e = $ex;
         }

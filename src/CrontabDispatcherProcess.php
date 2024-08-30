@@ -36,6 +36,13 @@ class CrontabDispatcherProcess extends Process
 
             $set['key'] = $k;
             $set['fieldFactory'] = $fieldFactory;
+
+            if (!isset($set['command'])) {
+                $set['command'] = null;
+            } elseif (!isset($set['execute'])) {
+                $set['execute'] = null;
+            }
+
             $cronTask = di()->make(CronTask::class, $set);
             $cronTask->schedule();
 
@@ -43,7 +50,8 @@ class CrontabDispatcherProcess extends Process
         }
     }
 
-    public function getState() {
+    public function getState()
+    {
         $stat = [];
 
         foreach ($this->crons as $cron) {
