@@ -2,6 +2,7 @@
 
 namespace Wind\Crontab;
 
+use Symfony\Component\Console\Application;
 use Wind\Base\Config;
 
 class Component implements \Wind\Base\Component
@@ -9,15 +10,14 @@ class Component implements \Wind\Base\Component
 
     public static function provide($app)
     {
-        $config = $app->container->get(Config::class);
-        $tabs = $config->get('crontab', []);
-
-        if (!empty($tabs)) {
-            return;
+        if (WIND_MODE == 'console') {
+            $console = $app->container->get(Application::class);
+            $console->add(new CronRunCommand());
         }
     }
 
     public static function start($worker)
-    {}
+    {
+    }
 
 }

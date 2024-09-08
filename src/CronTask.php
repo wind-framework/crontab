@@ -97,6 +97,11 @@ class CronTask
         return $this->cronExpression->getExpression();
     }
 
+    public function isDue()
+    {
+        return $this->cronExpression->isDue();
+    }
+
     /**
      * Schedule cron timer and run it
      *
@@ -134,7 +139,8 @@ class CronTask
             if ($this->callback) {
                 $result = Task::await($this->callback);
             } else {
-                $command = BASE_DIR.'/wind '.$this->command.' 2>&1';
+                $console = WIND_MODE == 'console' && !empty($_SERVER['argv']) ? $_SERVER['argv'][0] : BASE_DIR.'/wind';
+                $command = "$console {$this->command} 2>&1";
                 //2>&1 代表将标准错误重定向到输出
                 $process = Process::start($command);
                 // $output = buffer($process->getStdout());

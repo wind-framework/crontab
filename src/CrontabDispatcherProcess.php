@@ -7,8 +7,6 @@
  */
 namespace Wind\Crontab;
 
-use Cron\FieldFactory;
-use Wind\Base\Config;
 use Wind\Process\Process;
 use Wind\Process\Stateful;
 
@@ -26,27 +24,10 @@ class CrontabDispatcherProcess extends Process
 
     public function run()
     {
-        $tabs = di()->get(Config::class)->get('crontab', []);
-        $fieldFactory = new FieldFactory();
+        $this->crons = CrontabFactory::taskLists();
 
-        foreach ($tabs as $k => $set) {
-            if (!$set['enable']) {
-                continue;
-            }
-
-            $set['key'] = $k;
-            $set['fieldFactory'] = $fieldFactory;
-
-            if (!isset($set['command'])) {
-                $set['command'] = null;
-            } elseif (!isset($set['execute'])) {
-                $set['execute'] = null;
-            }
-
-            $cronTask = di()->make(CronTask::class, $set);
-            $cronTask->schedule();
-
-            $this->crons[$k] = $cronTask;
+        foreach ($this->crons as $task) {
+            $task->schedule();
         }
     }
 
