@@ -6,9 +6,10 @@ use Amp\Process\Process;
 use Cron\CronExpression;
 use Cron\FieldFactory;
 use DateTime;
+use Revolt\EventLoop;
 use Wind\Event\EventDispatcher;
 use Wind\Task\Task;
-use Workerman\Timer;
+use Workerman\Worker;
 
 /**
  * CronTask
@@ -115,7 +116,7 @@ class CronTask
         $this->nextRunAt = $nextTimestamp;
 
         $interval = $nextTimestamp - $now->getTimestamp();
-        Timer::add($interval, asyncCallable([$this, 'schedule']), [true], false);
+        EventLoop::delay($interval, fn() => $this->schedule(true));
 
         $this->eventDispatcher->dispatch(new CrontabEvent($this->key, CrontabEvent::TYPE_SCHED, $interval));
 
@@ -140,10 +141,18 @@ class CronTask
                 $result = Task::await($this->callback);
             } else {
                 $console = WIND_MODE == 'console' && !empty($_SERVER['argv']) ? $_SERVER['argv'][0] : BASE_DIR.'/wind';
-                $command = "$console {$this->command} 2>&1";
-                //2>&1 代表将标准错误重定向到输出
+                $command = "$console {$this->command} 2>&1"; //2>&1 代表将标准错误重定向到输出
                 $process = Process::start($command);
-                // $output = buffer($process->getStdout());
+
+                //输出需要被不断读出，否则缓冲区满时，进程可能会暂停运行
+                //根据运行情况决定缓冲是输出还是抛弃，在非 daemon 模式下输出
+                $stdout = $process->getStdout();
+                while (($t = $stdout->read()) !== null) {
+                    if (WIND_MODE == 'server' && !Worker::$daemonize) {
+                        echo $t;
+                    }
+                }
+
                 $code = $process->join();
                 if ($code != 0) {
                     throw new \Exception("Process '{$this->command}' exit with code $code");

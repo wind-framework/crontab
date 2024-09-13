@@ -6,6 +6,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Amp\async;
+use function Amp\Future\awaitAll;
+
 class CronRunCommand extends Command
 {
 
@@ -19,10 +22,16 @@ class CronRunCommand extends Command
     {
         $tasks = CrontabFactory::taskLists();
 
+        $runningTasks = [];
+
         foreach ($tasks as $task) {
             if ($task->isDue()) {
-                $task->run();
+                $runningTasks[] = async($task->run(...));
             }
+        }
+
+        if ($runningTasks) {
+            awaitAll($runningTasks);
         }
 
         return self::SUCCESS;
