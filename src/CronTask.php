@@ -141,7 +141,7 @@ class CronTask
                 $result = Task::await($this->callback);
             } else {
                 $console = WIND_MODE == 'console' && !empty($_SERVER['argv']) ? $_SERVER['argv'][0] : BASE_DIR.'/wind';
-                $command = "$console {$this->command} 2>&1"; //2>&1 代表将标准错误重定向到输出
+                $command = PHP_BINARY." $console {$this->command} 2>&1"; //2>&1 代表将标准错误重定向到输出
                 $process = Process::start($command);
 
                 //输出需要被不断读出，否则缓冲区满时，进程可能会暂停运行
